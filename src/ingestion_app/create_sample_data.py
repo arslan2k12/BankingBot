@@ -104,28 +104,42 @@ def create_sample_data():
     def hash_password(password):
         return hashlib.sha256(password.encode()).hexdigest()
     
-    # Sample users
+    # Realistic Scotiabank customer profiles
     users_data = [
         {
-            'user_id': 'john_doe',
+            'user_id': 'sarah_chen',
             'password': 'password123',
-            'email': 'john.doe@email.com',
-            'first_name': 'John',
-            'last_name': 'Doe'
+            'email': 'sarah.chen@gmail.com',
+            'first_name': 'Sarah',
+            'last_name': 'Chen'
         },
         {
-            'user_id': 'jane_smith',
+            'user_id': 'david_martinez',
             'password': 'password123',
-            'email': 'jane.smith@email.com',
-            'first_name': 'Jane',
-            'last_name': 'Smith'
+            'email': 'david.martinez@outlook.com',
+            'first_name': 'David',
+            'last_name': 'Martinez'
         },
         {
-            'user_id': 'mike_johnson',
+            'user_id': 'emma_thompson',
             'password': 'password123',
-            'email': 'mike.johnson@email.com',
-            'first_name': 'Mike',
-            'last_name': 'Johnson'
+            'email': 'emma.thompson@yahoo.ca',
+            'first_name': 'Emma',
+            'last_name': 'Thompson'
+        },
+        {
+            'user_id': 'ryan_patel',
+            'password': 'password123',
+            'email': 'ryan.patel@gmail.com',
+            'first_name': 'Ryan',
+            'last_name': 'Patel'
+        },
+        {
+            'user_id': 'lisa_wong',
+            'password': 'password123',
+            'email': 'lisa.wong@rogers.com',
+            'first_name': 'Lisa',
+            'last_name': 'Wong'
         }
     ]
     
@@ -137,17 +151,27 @@ def create_sample_data():
         ''', (user['user_id'], hash_password(user['password']), user['email'], 
               user['first_name'], user['last_name']))
     
-    # Sample accounts
+    # Realistic Scotiabank accounts with proper Canadian banking patterns
     accounts_data = [
-        # John Doe's accounts
-        {'user_id': 1, 'account_number': '1001234567', 'account_type': 'checking', 'balance': 2500.75},
-        {'user_id': 1, 'account_number': '1001234568', 'account_type': 'savings', 'balance': 15000.00},
-        # Jane Smith's accounts
-        {'user_id': 2, 'account_number': '1001234569', 'account_type': 'checking', 'balance': 1800.25},
-        {'user_id': 2, 'account_number': '1001234570', 'account_type': 'savings', 'balance': 25000.50},
-        # Mike Johnson's accounts
-        {'user_id': 3, 'account_number': '1001234571', 'account_type': 'checking', 'balance': 750.30},
-        {'user_id': 3, 'account_number': '1001234572', 'account_type': 'savings', 'balance': 5000.00}
+        # Sarah Chen - Young Professional (Tech Worker)
+        {'user_id': 1, 'account_number': '11234567890', 'account_type': 'checking', 'balance': 3247.85},
+        {'user_id': 1, 'account_number': '11234567891', 'account_type': 'savings', 'balance': 18500.00},
+        
+        # David Martinez - Family Man (Manager)
+        {'user_id': 2, 'account_number': '11234567892', 'account_type': 'checking', 'balance': 2156.43},
+        {'user_id': 2, 'account_number': '11234567893', 'account_type': 'savings', 'balance': 42750.25},
+        
+        # Emma Thompson - Retiree (Fixed Income)
+        {'user_id': 3, 'account_number': '11234567894', 'account_type': 'checking', 'balance': 1834.67},
+        {'user_id': 3, 'account_number': '11234567895', 'account_type': 'savings', 'balance': 67890.15},
+        
+        # Ryan Patel - University Student
+        {'user_id': 4, 'account_number': '11234567896', 'account_type': 'checking', 'balance': 487.92},
+        {'user_id': 4, 'account_number': '11234567897', 'account_type': 'savings', 'balance': 1250.00},
+        
+        # Lisa Wong - Small Business Owner
+        {'user_id': 5, 'account_number': '11234567898', 'account_type': 'checking', 'balance': 8934.21},
+        {'user_id': 5, 'account_number': '11234567899', 'account_type': 'savings', 'balance': 28450.75}
     ]
     
     # Insert accounts
@@ -158,25 +182,41 @@ def create_sample_data():
         ''', (account['user_id'], account['account_number'], 
               account['account_type'], account['balance']))
     
-    # Sample credit cards
+    # Realistic Scotiabank credit cards matching typical Canadian products
     credit_cards_data = [
-        # John Doe's credit cards
+        # Sarah Chen - Scotia Momentum Visa Infinite
         {
-            'user_id': 1, 'card_number': '4111111111111111', 'card_type': 'Premium Rewards',
-            'credit_limit': 10000.00, 'current_balance': 1250.75, 'minimum_payment': 35.00,
-            'due_date': (datetime.now() + timedelta(days=15)).isoformat()
+            'user_id': 1, 'card_number': '4538266895432109', 'card_type': 'Scotia Momentum Visa Infinite',
+            'credit_limit': 12000.00, 'current_balance': 1847.92, 'minimum_payment': 55.44,
+            'due_date': (datetime.now() + timedelta(days=18)).isoformat()
         },
-        # Jane Smith's credit cards
+        
+        # David Martinez - Scotia Gold American Express
         {
-            'user_id': 2, 'card_number': '4222222222222222', 'card_type': 'Gold Cash Back',
-            'credit_limit': 15000.00, 'current_balance': 890.50, 'minimum_payment': 25.00,
-            'due_date': (datetime.now() + timedelta(days=20)).isoformat()
+            'user_id': 2, 'card_number': '3782822463100059', 'card_type': 'Scotia Gold American Express',
+            'credit_limit': 20000.00, 'current_balance': 3241.67, 'minimum_payment': 97.25,
+            'due_date': (datetime.now() + timedelta(days=22)).isoformat()
         },
-        # Mike Johnson's credit cards
+        
+        # Emma Thompson - Scotia Rewards Visa
         {
-            'user_id': 3, 'card_number': '4333333333333333', 'card_type': 'Student Card',
-            'credit_limit': 2000.00, 'current_balance': 456.25, 'minimum_payment': 15.00,
-            'due_date': (datetime.now() + timedelta(days=10)).isoformat()
+            'user_id': 3, 'card_number': '4538266895432187', 'card_type': 'Scotia Rewards Visa',
+            'credit_limit': 8000.00, 'current_balance': 567.43, 'minimum_payment': 17.02,
+            'due_date': (datetime.now() + timedelta(days=12)).isoformat()
+        },
+        
+        # Ryan Patel - Scotia Scene Visa
+        {
+            'user_id': 4, 'card_number': '4538266895432234', 'card_type': 'Scotia Scene Visa',
+            'credit_limit': 2500.00, 'current_balance': 892.15, 'minimum_payment': 26.76,
+            'due_date': (datetime.now() + timedelta(days=8)).isoformat()
+        },
+        
+        # Lisa Wong - Scotia Passport Visa Infinite
+        {
+            'user_id': 5, 'card_number': '4538266895432276', 'card_type': 'Scotia Passport Visa Infinite',
+            'credit_limit': 15000.00, 'current_balance': 2156.88, 'minimum_payment': 64.71,
+            'due_date': (datetime.now() + timedelta(days=25)).isoformat()
         }
     ]
     
@@ -190,73 +230,267 @@ def create_sample_data():
               card['credit_limit'], card['current_balance'], card['minimum_payment'], 
               card['due_date'], card['credit_limit'] - card['current_balance']))
     
-    # Sample transactions
-    merchants = [
-        'Amazon', 'Walmart', 'Target', 'Starbucks', 'McDonald\'s', 'Shell Gas Station',
-        'Home Depot', 'Best Buy', 'Grocery Store', 'Netflix', 'Spotify', 'Electric Company',
-        'Water Department', 'Insurance Payment', 'Salary Deposit', 'ATM Withdrawal'
-    ]
-    
-    categories = [
-        'Shopping', 'Groceries', 'Entertainment', 'Gas', 'Utilities', 'Salary',
-        'Restaurants', 'Subscription', 'Home Improvement', 'Healthcare', 'Insurance'
-    ]
-    
-    # Generate transactions for each account
-    account_ids = [1, 2, 3, 4, 5, 6]  # Account IDs from the accounts table
-    
-    transaction_id_counter = 1
-    for account_id in account_ids:
-        # Generate 20-30 transactions per account
-        num_transactions = random.randint(20, 30)
+    # Realistic Canadian merchant-category mappings for proper alignment
+    merchant_category_mappings = {
+        # Groceries & Food
+        'Loblaws': ('Groceries', [45.67, 78.92, 123.45, 89.34, 156.78]),
+        'Metro': ('Groceries', [34.56, 89.23, 67.89, 145.67, 98.45]),
+        'Sobeys': ('Groceries', [67.23, 134.56, 89.12, 178.90, 76.54]),
+        'No Frills': ('Groceries', [23.45, 56.78, 89.23, 45.67, 134.56]),
+        'FreshCo': ('Groceries', [34.67, 67.89, 123.45, 89.34, 156.78]),
+        'Food Basics': ('Groceries', [28.90, 78.45, 56.78, 123.45, 89.23]),
         
-        for i in range(num_transactions):
-            # Random transaction details
-            is_credit = random.choice([True, False])
-            amount = round(random.uniform(10.00, 500.00), 2)
+        # Restaurants & Dining
+        'Tim Hortons': ('Restaurants', [4.67, 8.92, 12.45, 6.34, 15.78]),
+        'McDonald\'s': ('Restaurants', [9.56, 14.23, 18.89, 12.67, 21.45]),
+        'Subway': ('Restaurants', [8.23, 13.56, 17.12, 11.90, 19.54]),
+        'A&W': ('Restaurants', [11.45, 16.78, 19.23, 14.67, 22.56]),
+        'Boston Pizza': ('Restaurants', [34.67, 45.89, 56.45, 67.34, 78.78]),
+        'Swiss Chalet': ('Restaurants', [28.90, 39.45, 48.78, 34.45, 67.23]),
+        'The Keg': ('Restaurants', [89.45, 134.67, 178.90, 156.78, 198.45]),
+        
+        # Gas Stations
+        'Petro-Canada': ('Gas', [45.67, 56.78, 67.89, 78.90, 89.45]),
+        'Shell': ('Gas', [43.56, 54.23, 65.89, 76.67, 87.45]),
+        'Esso': ('Gas', [47.23, 58.56, 69.12, 80.90, 91.54]),
+        'Canadian Tire Gas+': ('Gas', [42.45, 53.78, 64.23, 75.67, 86.56]),
+        'Costco Gas': ('Gas', [51.67, 62.89, 73.45, 84.34, 95.78]),
+        
+        # Utilities & Services
+        'Hydro One': ('Utilities', [89.34, 123.45, 156.78, 178.90, 201.23]),
+        'Toronto Hydro': ('Utilities', [78.45, 112.67, 145.89, 167.23, 189.56]),
+        'Enbridge Gas': ('Utilities', [67.89, 98.45, 123.67, 145.23, 167.89]),
+        'Rogers Communications': ('Utilities', [89.99, 119.99, 149.99, 179.99, 199.99]),
+        'Bell Canada': ('Utilities', [85.00, 115.00, 145.00, 175.00, 195.00]),
+        'Telus': ('Utilities', [75.00, 105.00, 135.00, 165.00, 185.00]),
+        
+        # Shopping & Retail  
+        'Amazon.ca': ('Shopping', [23.45, 67.89, 134.56, 89.23, 178.90]),
+        'Canadian Tire': ('Shopping', [45.67, 89.34, 156.78, 234.56, 345.67]),
+        'The Bay': ('Shopping', [67.89, 123.45, 189.67, 234.89, 345.78]),
+        'Winners': ('Shopping', [34.56, 67.89, 98.76, 145.23, 189.45]),
+        'Costco': ('Shopping', [123.45, 189.67, 234.89, 345.67, 456.78]),
+        'Home Depot': ('Home Improvement', [45.67, 89.34, 167.89, 234.56, 345.67]),
+        'IKEA': ('Home Improvement', [78.90, 156.78, 234.56, 345.67, 456.78]),
+        
+        # Entertainment & Subscriptions
+        'Netflix': ('Entertainment', [16.49, 20.99, 24.99]),
+        'Spotify': ('Entertainment', [11.99, 16.99]),
+        'Disney+': ('Entertainment', [11.99, 17.99]),
+        'Amazon Prime': ('Entertainment', [9.99, 12.99]),
+        'Cineplex': ('Entertainment', [14.99, 18.99, 22.99, 26.99]),
+        
+        # Healthcare & Pharmacy
+        'Shoppers Drug Mart': ('Healthcare', [12.45, 34.67, 56.89, 78.90, 123.45]),
+        'Rexall': ('Healthcare', [15.67, 34.89, 67.23, 89.45, 134.67]),
+        'Medical Centre': ('Healthcare', [150.00, 200.00, 250.00, 300.00]),
+        
+        # Transportation
+        'TTC': ('Transportation', [3.35, 12.00, 156.00]),  # Single ride, day pass, monthly
+        'GO Transit': ('Transportation', [5.70, 12.35, 24.70, 389.00]),
+        'Uber': ('Transportation', [12.45, 18.67, 23.89, 34.56, 45.78]),
+        'Lyft': ('Transportation', [11.23, 17.89, 22.45, 33.67, 44.89]),
+        
+        # Banking & Financial
+        'Scotiabank ATM': ('Banking', [2.50, 3.50]),  # ATM fees
+        'Interac e-Transfer': ('Banking', [1.50]),
+        
+        # Government & Insurance
+        'CRA': ('Government', [1250.00, 2500.00, 3750.00]),  # Tax payments
+        'Service Ontario': ('Government', [120.00, 180.00, 240.00]),
+        'TD Insurance': ('Insurance', [89.50, 156.75, 234.50, 312.25]),
+        'State Farm': ('Insurance', [95.25, 167.50, 239.75, 312.00]),
+        
+        # Education (for student)
+        'University of Toronto': ('Education', [2500.00, 5000.00, 7500.00]),
+        'Indigo Books': ('Education', [23.45, 67.89, 134.56, 189.23]),
+        
+        # Business (for business owner)
+        'Staples Business': ('Business', [45.67, 89.34, 167.89, 234.56]),
+        'Office Depot': ('Business', [34.56, 78.90, 156.78, 234.67]),
+        
+        # Salary & Income (Credits)
+        'Payroll Deposit': ('Income', [3250.00, 4500.00, 5750.00, 6500.00]),
+        'Direct Deposit': ('Income', [2800.00, 3500.00, 4200.00]),
+        'Pension Deposit': ('Income', [1850.00, 2300.00, 2750.00]),
+        'OSAP': ('Income', [1200.00, 1800.00, 2400.00]),  # Student loans
+    }
+    
+    # User profiles for realistic transaction patterns
+    user_profiles = {
+        1: {  # Sarah Chen - Tech Professional
+            'salary_range': [4500.00, 5750.00],
+            'spending_habits': {
+                'Groceries': 0.20, 'Restaurants': 0.15, 'Shopping': 0.25, 
+                'Entertainment': 0.10, 'Gas': 0.08, 'Utilities': 0.12, 
+                'Healthcare': 0.05, 'Transportation': 0.05
+            },
+            'preferred_merchants': ['Loblaws', 'Tim Hortons', 'Amazon.ca', 'Uber', 'Netflix', 'Petro-Canada'],
+            'monthly_transactions': 45
+        },
+        2: {  # David Martinez - Family Manager
+            'salary_range': [5500.00, 6500.00],
+            'spending_habits': {
+                'Groceries': 0.30, 'Restaurants': 0.12, 'Shopping': 0.20, 
+                'Gas': 0.12, 'Utilities': 0.15, 'Insurance': 0.06, 
+                'Healthcare': 0.03, 'Home Improvement': 0.02
+            },
+            'preferred_merchants': ['Costco', 'Metro', 'Canadian Tire', 'Shell', 'Boston Pizza', 'Home Depot'],
+            'monthly_transactions': 55
+        },
+        3: {  # Emma Thompson - Retiree
+            'salary_range': [2300.00, 2750.00],  # Pension
+            'spending_habits': {
+                'Groceries': 0.25, 'Healthcare': 0.20, 'Utilities': 0.18, 
+                'Restaurants': 0.08, 'Shopping': 0.12, 'Transportation': 0.10, 
+                'Insurance': 0.05, 'Entertainment': 0.02
+            },
+            'preferred_merchants': ['Sobeys', 'Shoppers Drug Mart', 'TTC', 'Swiss Chalet', 'The Bay'],
+            'monthly_transactions': 35
+        },
+        4: {  # Ryan Patel - University Student
+            'salary_range': [1200.00, 1800.00],  # OSAP + part-time
+            'spending_habits': {
+                'Groceries': 0.15, 'Restaurants': 0.25, 'Education': 0.35, 
+                'Transportation': 0.10, 'Entertainment': 0.08, 'Shopping': 0.05, 
+                'Healthcare': 0.02
+            },
+            'preferred_merchants': ['No Frills', 'Tim Hortons', 'McDonald\'s', 'TTC', 'Indigo Books'],
+            'monthly_transactions': 28
+        },
+        5: {  # Lisa Wong - Small Business Owner
+            'salary_range': [3500.00, 4200.00],
+            'spending_habits': {
+                'Business': 0.25, 'Groceries': 0.18, 'Restaurants': 0.15, 
+                'Gas': 0.12, 'Shopping': 0.12, 'Utilities': 0.10, 
+                'Transportation': 0.05, 'Healthcare': 0.03
+            },
+            'preferred_merchants': ['FreshCo', 'Staples Business', 'Esso', 'The Keg', 'Costco'],
+            'monthly_transactions': 40
+        }
+    }
+    
+    # Generate realistic transactions for all 10 accounts (2 per user)
+    account_ids = list(range(1, 11))  # Account IDs 1-10
+    transaction_id_counter = 1
+    
+    for account_id in account_ids:
+        user_id = ((account_id - 1) // 2) + 1  # Map account to user (2 accounts per user)
+        profile = user_profiles[user_id]
+        
+        # Generate 12 months of transactions
+        for month_offset in range(12):
+            base_date = datetime.now() - timedelta(days=30 * month_offset)
+            monthly_transactions = profile['monthly_transactions']
             
-            if is_credit and random.random() < 0.1:  # 10% chance of salary deposit
-                amount = round(random.uniform(2000.00, 5000.00), 2)
-                merchant = 'Salary Deposit'
-                category = 'Salary'
-                transaction_type = 'credit'
-                description = 'Monthly Salary'
-            else:
-                merchant = random.choice(merchants)
-                category = random.choice(categories)
-                transaction_type = 'credit' if is_credit else 'debit'
-                description = f'{transaction_type.title()} - {merchant}'
+            # Add some randomness to monthly transaction count
+            actual_transactions = random.randint(
+                int(monthly_transactions * 0.8), 
+                int(monthly_transactions * 1.2)
+            )
             
-            # Random date within last 90 days
-            days_ago = random.randint(1, 90)
-            transaction_date = (datetime.now() - timedelta(days=days_ago)).isoformat()
+            # Generate monthly salary/income (only for checking accounts - odd IDs)
+            if account_id % 2 == 1:  # Checking accounts
+                income_amount = random.choice(profile['salary_range'])
+                # Generate salary date safely (avoid February 29/30 issues)
+                try:
+                    salary_date = base_date.replace(day=random.randint(1, 28))
+                except ValueError:
+                    salary_date = base_date.replace(day=15)  # Fallback to mid-month
+                
+                income_merchant = 'Payroll Deposit'
+                if user_id == 3:  # Retiree gets pension
+                    income_merchant = 'Pension Deposit'
+                elif user_id == 4:  # Student gets OSAP
+                    income_merchant = 'OSAP'
+                
+                cursor.execute('''
+                INSERT OR IGNORE INTO transactions 
+                (account_id, transaction_id, transaction_type, amount, description, category, merchant, transaction_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (account_id, f'TXN{transaction_id_counter:06d}', 'credit', 
+                      income_amount, f'Monthly income - {income_merchant}', 'Income', 
+                      income_merchant, salary_date.isoformat()))
+                transaction_id_counter += 1
             
-            cursor.execute('''
-            INSERT OR IGNORE INTO transactions 
-            (account_id, transaction_id, transaction_type, amount, description, category, merchant, transaction_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (account_id, f'TXN{transaction_id_counter:06d}', transaction_type, 
-                  amount, description, category, merchant, transaction_date))
-            
-            transaction_id_counter += 1
+            # Generate spending transactions based on user profile
+            for _ in range(actual_transactions):
+                # Select category based on spending habits
+                category_weights = list(profile['spending_habits'].values())
+                category = random.choices(list(profile['spending_habits'].keys()), weights=category_weights)[0]
+                
+                # Find merchants that match this category
+                matching_merchants = [merchant for merchant, (cat, amounts) in merchant_category_mappings.items() 
+                                    if cat == category]
+                
+                if not matching_merchants:
+                    continue
+                    
+                # Prefer merchants from user's preferred list if available
+                preferred_matches = [m for m in matching_merchants if m in profile['preferred_merchants']]
+                if preferred_matches and random.random() < 0.6:  # 60% chance to use preferred
+                    merchant = random.choice(preferred_matches)
+                else:
+                    merchant = random.choice(matching_merchants)
+                
+                # Get realistic amount for this merchant
+                _, amounts = merchant_category_mappings[merchant]
+                amount = random.choice(amounts)
+                
+                # Add some realistic variation (±20%)
+                variation = random.uniform(0.8, 1.2)
+                amount = round(amount * variation, 2)
+                
+                # Generate transaction date within the month
+                days_in_month = random.randint(1, 28)
+                transaction_date = base_date - timedelta(days=days_in_month)
+                
+                # Determine transaction type (mostly debits, some credits for returns)
+                transaction_type = 'debit'
+                description = f'Purchase - {merchant}'
+                
+                # Small chance of returns/refunds
+                if random.random() < 0.02:  # 2% chance
+                    transaction_type = 'credit'
+                    description = f'Refund - {merchant}'
+                    amount = amount * 0.5  # Partial refunds are common
+                
+                cursor.execute('''
+                INSERT OR IGNORE INTO transactions 
+                (account_id, transaction_id, transaction_type, amount, description, category, merchant, transaction_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (account_id, f'TXN{transaction_id_counter:06d}', transaction_type, 
+                      amount, description, category, merchant, transaction_date.isoformat()))
+                
+                transaction_id_counter += 1
+    
+    # Get actual transaction count before closing connection
+    cursor.execute("SELECT COUNT(*) FROM transactions")
+    actual_transaction_count = cursor.fetchone()[0]
     
     conn.commit()
     conn.close()
     
-    print("✅ Initialized database")
-    print(f"✅ Created {len(users_data)} sample users")
-    print(f"✅ Created {len(accounts_data)} bank accounts")
-    print(f"✅ Created {len(account_ids) * 25} transactions")  # Approximate
-    print(f"✅ Created {len(credit_cards_data)} credit cards")
+    print("✅ Initialized database with realistic Canadian banking data")
+    print(f"✅ Created {len(users_data)} diverse customer profiles")
+    print(f"✅ Created {len(accounts_data)} Scotiabank accounts")
+    print(f"✅ Generated {actual_transaction_count} realistic transactions over 12 months")
+    print(f"✅ Created {len(credit_cards_data)} authentic Scotiabank credit cards")
     
     # Create ChromaDB and ingest documents using ingestion_app
     ingest_sample_documents(data_dir)
     
-    print("✅ Setup completed successfully!")
-    print(f"\nDatabase location: {db_path}")
-    print("\nSample users created:")
-    for user in users_data:
-        print(f"- {user['user_id']} (password: {user['password']})")
+    print("✅ Banking Bot setup completed successfully!")
+    print(f"\n📂 Database location: {db_path}")
+    print(f"📊 Total merchants: {len(merchant_category_mappings)}")
+    print(f"💳 Card types: Scotia Momentum, Scotia Gold Amex, Scotia Rewards, Scotia Scene, Scotia Passport")
+    print("\n👥 Sample users for workshop testing:")
+    user_descriptions = [
+        "Young Tech Professional", "Family Manager", "Retiree", 
+        "University Student", "Small Business Owner"
+    ]
+    for i, user in enumerate(users_data):
+        print(f"- {user['user_id']} (password: {user['password']}) - {user_descriptions[i]}")
 
 async def clear_chromadb_collection(ingestion_service):
     """Clear existing ChromaDB collection to prevent data duplication"""
