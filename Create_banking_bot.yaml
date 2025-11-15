@@ -1,0 +1,155 @@
+Create_banking_bot
+create a chatbot based on FAST API, langchain and langgraph for a banking domain.
+The chatbot should have the following features:
+- user can ask question about their banking data like account balance, recent transactions, credit card benefits, bank policies, fee structures etc.
+- user can also ask general banking related questions.
+- the bot will use customer banking data stored in a backend SQLite database.
+- the bot will also use bank policies, credit card benefits documents stored in a local ChromaDB vector store.
+- the langraph agent workflow will use tools to query the SQLite database and to retrieve relevant document chunks from ChromaDB, depending on the user query.
+- if the user query is generic, it will not pull customer data from SQLite, rather only use ChromaDB to answer.  Bot should not use any data outside these two sources.
+- the bot will use OpenAI gpt-4o and openai embedding models.
+- the bot will maintain chat history for each user, like chatgpt or gemini.
+- each chat for a user will have a unique chat_thread_id.
+- each user will have a user_id and password for authentication.
+- langraph inmemorysaver will be used for chat history for now, that will use thread_id as chat_thread_id + "_" + user_id for state management.
+- the bot will use latest version of langchain and langraph v1.0 and create_agent with tools.
+https://docs.langchain.com/oss/python/langgraph/overview
+https://docs.langchain.com/oss/python/langchain/agents
+https://docs.langchain.com/oss/python/langchain/tools
+- the bot will use structured outputs to ensure schema. https://docs.langchain.com/oss/python/langchain/structured-output
+- backend SQLite database has tables for customer banking data, and also for bot logs, and for chat data like bot_response, user_query, user_feedback tables etc.
+- use SQLAlchemy for database interactions with connection pooling.
+- the code should be modular and scalable to extend to enterprise scale later.
+- the bot will provide streaming responses to the user.
+- UI similar to chatGPT, based on Agent Chat UI from langraph. https://docs.langchain.com/oss/python/langgraph/ui
+chat history. 
+- feedback thumbs up or down, optional comments for each response.
+- user auth. each user has a user_id/password and their separate chat histories.
+
+
+
+
+Separately, create an api for loading, chunking and embedding pdf (bank policies, credit card benefits etc) and then storing in ChromaDB locally. retrieval tool will later retrieve this data. 
+create a separate api for loading, chunking and embedding pdf (bank policies, credit card benefits etc) and then storing in ChromaDB locally. retrieval tool will later retrieve this data.
+
+Here is a suggested project folder structure: Make any changes as needed for better modularity and scalability.
+Feel free to suggest any additional folders or files as needed for better organization.
+
+
+src/app/
+    api/
+        endpoints/
+            chat.py
+            user.py
+            feedback.py
+            health.py
+            auth.py
+            all other best practices for structuring fastapi endpoints
+    services/
+        chat_service.py
+        user_service.py
+        feedback_service.py
+        db_service.py
+        embedding_service.py
+        retrieval_service.py
+        evaluation_service.py
+        ...
+    models/
+        user.py
+        query_input.py
+        query_response.py
+        feedback.py
+        chat_history.py
+        ...
+    database/
+        database.py
+        ...
+    tools/
+        sql_retrieval_tool.py
+        doc_retrieval_tool.py
+        ...
+    agents/
+        ...
+    graphs/
+        ..
+    utils/
+        prompts.py
+        logger_utils.py
+        ...
+    config/
+        service_config.py
+        ...
+src/ui/
+    already have agent chat UI from langraph as a separate repo (agent-chat-ui) in my local. Make sure your project can integrate with that.
+    https://docs.langchain.com/oss/python/langgraph/ui
+
+separate app for ingestion - laod data from pdfs, chunk and store in chromadb accessible by main chatbot app.
+
+Here is a suggested project folder structure for the ingestion app:
+src/ingestion_app/
+    api/
+        endpoints/
+            ingest.py
+            ...
+    services/
+        ingest_service.py
+        ...
+    continue with best practices.
+
+
+test the bot end to end with sample data in SQLite and sample pdf documents for bank policies and credit card benefits
+
+
+
+
+
+Rough Notes:
+
+update create_agent and use structured output or tool strategy or whatever it takes from langgraph v1 to extract all the tool messages and show all the thought process in the logs on what agent is doing. there are various types of messages like HumanMessage, AIMessage, ToolMessage etc.... which we can parse.
+
+Go through these to understand detaisls:
+https://reference.langchain.com/python/langchain/agents/
+https://reference.langchain.com/python/langchain/tools/
+https://reference.langchain.com/python/langchain/messages/
+https://reference.langchain.com/python/langchain/middleware/#middleware-classes
+
+https://docs.langchain.com/oss/python/langchain/agents
+https://docs.langchain.com/oss/python/langchain/models
+https://docs.langchain.com/oss/python/langchain/messages
+https://docs.langchain.com/oss/python/langchain/tools
+https://docs.langchain.com/oss/python/langchain/short-term-memory
+https://docs.langchain.com/oss/python/langchain/streaming
+https://docs.langchain.com/oss/python/langchain/structured-output
+
+
+i tried and got this output in swagger. why so many dupliactions?
+also why reasoning is empty?
+
+
+curl -X 'POST' \
+  'http://localhost:2024/chat/stream' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtaWtlX2pvaG5zb24iLCJleHAiOjE3NjMxMjI1NjJ9.t_OI2kd5_i3Iz6aaLrjCjK6IqGGpoypEZRy-3o_yxwk' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "message": "give my balance of all account? my name and my email?",
+  "chat_thread_id": "thread7"
+}'
+
+data: {"type": "stream_start", "user_id": "mike_johnson", "chat_thread_id": "thread7", "timestamp": "2025-11-14T03:07:14.288666"}
+
+data: {"type": "react_step", "step": 1, "phase": "THOUGHT", "content": "\ud83e\udde0 Agent is analyzing the request and deciding what to do...", "user_id": "mike_johnson", "timestamp": "2025-11-14T03:07:15.441883"}
+
+data: {"type": "react_step", "step": 1, "phase": "REASONING", "content": "\ud83d\udcad Reasoning: ", "user_id": "mike_johnson", "timestamp": "2025-11-14T03:07:16.634603"}
+
+data: {"type": "react_step", "step": 1, "phase": "ACTION", "content": "\ud83d\udd27 Action: Using get_account_balance", "details": "Input: {'user_id': 'mike_johnson'}", "user_id": "mike_johnson", "timestamp": "2025-11-14T03:07:16.647235"}
+
+data: {"type": "react_step", "step": 1, "phase": "OBSERVATION", "content": "\ud83d\udc41\ufe0f Observation: Tool completed successfully", "details": "Result: {\"accounts\": [{\"account_number\": \"1001234571\", \"account_type\": \"checking\", \"balance\": 750.3, \"currency\": \"USD\"}, {\"account_number\": \"1001234572\", \"account_type\": \"savings\", \"balance\": 5000.0, \"currency\": \"USD\"}], \"total_balance\": 5750.3, \"currency\": \"USD\", \"as_of_date\": \"2025-11-14T03:07:16.660212\"}", "user_id": "mike_johnson", "timestamp": "2025-11-14T03:07:16.661134"}
+
+data: {"type": "react_step", "step": 2, "phase": "THOUGHT", "content": "\ud83e\udde0 Agent is analyzing the request and deciding what to do...", "user_id": "mike_johnson", "timestamp": "2025-11-14T03:07:16.677778"}
+
+data: {"type": "react_step", "step": 2, "phase": "REASONING", "content": "\ud83d\udcad Reasoning: ", "user_id": "mike_johnson", "timestamp": "2025-11-14T03:07:19.814570"}
+
+data: {"type": "stream_complete", "timestamp": "2025-11-14T03:07:19.822615"}
+
+data: {"type": "completion", "chat_thread_id": "thread7", "timestamp": "2025-11-14T03:07:19.823220"}

@@ -1,0 +1,52 @@
+# FastAPI and Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+aiofiles
+
+# LangChain and LangGraph - Latest versions
+langchain
+langchain-openai
+langchain-community
+langgraph
+langsmith
+
+# OpenAI
+openai
+
+# Database
+sqlalchemy
+alembic
+
+# Vector Database
+chromadb
+
+# Document Processing
+PyPDF2
+python-docx
+unstructured[local-inference]
+tiktoken
+
+# Pydantic for data validation
+pydantic
+pydantic-settings
+
+# Other utilities
+python-dotenv
+httpx
+Pillow
+numpy
+pandas
+
+# Development and Testing
+pytest
+pytest-asyncio
+black
+isort
+flake8
+mypy
+
+# Logging
+structlog

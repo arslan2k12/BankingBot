@@ -1,0 +1,80 @@
+{
+  "graphs": {
+    "banking_agent": {
+      "path": "src.app.agents.banking_agent:get_banking_graph",
+      "title": "Banking Bot for IEEE Workshop",
+      "description": "Advanced banking assistant with account management, transaction history, and policy information",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID for banking operations",
+            "default": "user123"
+          },
+          "chat_thread_id": {
+            "type": "string", 
+            "description": "Chat thread ID for conversation tracking",
+            "default": "thread_default"
+          },
+          "model": {
+            "type": "string",
+            "description": "OpenAI model to use",
+            "default": "gpt-4o",
+            "enum": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"]
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Model temperature for response creativity",
+            "default": 0.1,
+            "minimum": 0.0,
+            "maximum": 2.0
+          }
+        }
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {"type": "string", "enum": ["human", "ai", "system"]},
+                "content": {"type": "string"}
+              }
+            }
+          },
+          "user_id": {"type": "string"},
+          "thread_id": {"type": "string"}
+        },
+        "required": ["messages"]
+      },
+      "output_schema": {
+        "type": "object", 
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {"type": "string"},
+                "content": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "env": ".env",
+  "python_version": "3.11",
+  "dependencies": [
+    ".",
+    "langchain",
+    "langchain-openai",
+    "langgraph",
+    "chromadb",
+    "sqlite3"
+  ]
+}
