@@ -50,3 +50,5 @@ mypy
 
 # Logging
 structlog
+
+PyMuPDF
