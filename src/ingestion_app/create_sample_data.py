@@ -556,37 +556,81 @@ def ingest_sample_documents(data_dir):
             # Process sample documents
             sample_docs_dir = data_dir / "sample_documents"
             documents_processed = 0
+            total_chunks_stored = 0
             
-            # Process bank policies
-            bank_policies_file = sample_docs_dir / "bank_policies.txt"
-            if bank_policies_file.exists():
-                result = await ingestion_service.ingest_document(
-                    str(bank_policies_file),
-                    document_type="policy"
-                )
-                if result.get("status") == "success":
-                    documents_processed += 1
-                    chunks_stored = result.get("chunks_stored", 0)
-                    print(f"✅ Processed bank_policies.txt ({chunks_stored} chunks)")
-                else:
-                    print(f"⚠️  Warning: {result.get('error', 'Unknown error')}")
+            print("📄 Processing sample documents...")
             
-            # Process credit card benefits
-            benefits_file = sample_docs_dir / "credit_card_benefits.txt"
-            if benefits_file.exists():
-                result = await ingestion_service.ingest_document(
-                    str(benefits_file),
-                    document_type="benefits"
-                )
-                if result.get("status") == "success":
-                    documents_processed += 1
-                    chunks_stored = result.get("chunks_stored", 0)
-                    print(f"✅ Processed credit_card_benefits.txt ({chunks_stored} chunks)")
-                else:
-                    print(f"⚠️  Warning: {result.get('error', 'Unknown error')}")
+            # Check if sample documents directory exists
+            if not sample_docs_dir.exists():
+                print(f"⚠️  Sample documents directory not found: {sample_docs_dir}")
+                return 0
+            
+            # Get all supported files in the directory
+            supported_extensions = ['.pdf', '.txt', '.docx']
+            all_files = []
+            
+            for extension in supported_extensions:
+                files = list(sample_docs_dir.glob(f"*{extension}"))
+                all_files.extend(files)
+            
+            if not all_files:
+                print(f"⚠️  No supported documents found in {sample_docs_dir}")
+                print(f"   Supported formats: {', '.join(supported_extensions)}")
+                return 0
+            
+            print(f"📁 Found {len(all_files)} documents to process")
+            
+            # Process each file
+            for file_path in sorted(all_files):  # Sort for consistent processing order
+                file_name = file_path.name
+                file_ext = file_path.suffix.lower()
+                
+                # Determine document type based on filename patterns
+                document_type = "document"  # Default type
+                
+                if "policy" in file_name.lower() or "policies" in file_name.lower():
+                    document_type = "policy"
+                elif "benefit" in file_name.lower() or "benefits" in file_name.lower():
+                    document_type = "benefits"
+                elif "credit" in file_name.lower() and ("card" in file_name.lower() or "visa" in file_name.lower()):
+                    document_type = "credit_card"
+                elif "passport" in file_name.lower():
+                    document_type = "passport_card"
+                elif "scotia" in file_name.lower():
+                    document_type = "scotiabank_document"
+                elif file_ext == ".pdf":
+                    document_type = "banking_document"
+                
+                print(f"📄 Processing {file_name} (type: {document_type})...")
+                
+                try:
+                    result = await ingestion_service.ingest_document(
+                        str(file_path),
+                        document_type=document_type
+                    )
+                    
+                    if result.get("status") == "success":
+                        documents_processed += 1
+                        chunks_stored = result.get("chunks_stored", 0)
+                        total_chunks_stored += chunks_stored
+                        
+                        # Show different messages for PDFs vs other files
+                        if file_ext == ".pdf":
+                            print(f"✅ Processed {file_name} ({chunks_stored} page-based chunks)")
+                        else:
+                            print(f"✅ Processed {file_name} ({chunks_stored} text chunks)")
+                    else:
+                        print(f"⚠️  Warning processing {file_name}: {result.get('error', 'Unknown error')}")
+                        
+                except Exception as e:
+                    print(f"❌ Error processing {file_name}: {str(e)}")
             
             if documents_processed > 0:
-                print(f"✅ Created ChromaDB with {documents_processed} policy documents")
+                print(f"✅ Created ChromaDB with {documents_processed} documents ({total_chunks_stored} total chunks)")
+                print(f"📝 Chunks include: PDF pages (page-based) + text file chunks in structured markdown format")
+                print(f"🔍 Document types processed: PDF, TXT, DOCX files with automatic type detection")
+            else:
+                print("⚠️  No documents were successfully processed")
             
             return documents_processed
         
