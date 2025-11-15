@@ -1,5 +1,5 @@
 from langchain_core.documents import Document
-from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
+from langchain_community.document_loaders import Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 import chromadb
@@ -9,6 +9,11 @@ import uuid
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import json
+import fitz  # PyMuPDF
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Setup project path for consistent imports
 import sys
@@ -71,63 +76,224 @@ class DocumentIngestionService:
         return self._collection
     
     def load_document(self, file_path: str, document_type: str = "policy") -> List[Document]:
-        """Load a document from file path and return LangChain Document objects"""
+        """Load a document from file path and return LangChain Document objects with enhanced metadata"""
         try:
-            file_extension = Path(file_path).suffix.lower()
+            file_path = Path(file_path)
+            file_extension = file_path.suffix.lower()
+            file_name = file_path.name
+            file_stem = file_path.stem  # Filename without extension
             
             if file_extension == ".pdf":
-                loader = PyPDFLoader(file_path)
-                documents = loader.load()
+                logger.info(f"Processing PDF with PyMuPDF: {file_name}")
+                documents = self._process_pdf_with_pymupdf(file_path, file_stem, file_name, document_type)
+                    
             elif file_extension == ".docx":
-                loader = Docx2txtLoader(file_path)
+                loader = Docx2txtLoader(str(file_path))
                 documents = loader.load()
+                
+                # Enhance DOCX documents
+                for doc in documents:
+                    doc.metadata.update({
+                        "source_title": file_stem,
+                        "source_file": file_name,
+                        "document_type": document_type,
+                        "file_name": file_name,
+                        "file_extension": file_extension,
+                        "source_path": str(file_path)
+                    })
+                    
+                    # Add source info to content
+                    doc.page_content = f"[Source: {file_stem}]\n\n{doc.page_content}"
+                    
             elif file_extension == ".txt":
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                # Create LangChain Document for text files
+                
+                # Create enhanced Document for text files
                 documents = [Document(
-                    page_content=content,
+                    page_content=f"[Source: {file_stem}]\n\n{content}",
                     metadata={
-                        "source": file_path,
+                        "source": str(file_path),
+                        "source_title": file_stem,
+                        "source_file": file_name,
                         "document_type": document_type,
-                        "file_name": Path(file_path).name,
-                        "file_extension": file_extension
+                        "file_name": file_name,
+                        "file_extension": file_extension,
+                        "source_path": str(file_path)
                     }
                 )]
             else:
                 raise ValueError(f"Unsupported file type: {file_extension}")
             
-            # Add metadata to all documents
-            for doc in documents:
-                if not isinstance(doc, Document):
-                    # Convert to proper Document if needed
-                    doc = Document(page_content=doc.page_content, metadata=doc.metadata)
-                
-                doc.metadata.update({
-                    "document_type": document_type,
-                    "file_name": Path(file_path).name,
-                    "file_extension": file_extension
-                })
-            
-            logger.info(f"Loaded {len(documents)} documents from {file_path}")
+            logger.info(f"Loaded {len(documents)} pages/sections from {file_name}")
             return documents
             
         except Exception as e:
             logger.error(f"Error loading document {file_path}: {str(e)}")
             raise
     
-    def chunk_documents(self, documents: List[Document]) -> List[Document]:
-        """Split LangChain documents into chunks"""
+    def _process_pdf_with_pymupdf(self, file_path: Path, file_stem: str, file_name: str, document_type: str) -> List[Document]:
+        """Process PDF using PyMuPDF to convert each page to markdown"""
+        documents = []
+        
+        # Clean up the document title for display
+        display_title = file_stem.replace('_', ' ').replace('-', ' ').title()
+        
         try:
-            # Use the text splitter's split_documents method for proper Document handling
-            chunked_docs = self.text_splitter.split_documents(documents)
+            # Open PDF with PyMuPDF
+            pdf_document = fitz.open(str(file_path))
+            logger.info(f"📄 PDF opened successfully: {len(pdf_document)} pages")
             
-            # Add chunk-specific metadata
-            for i, chunk_doc in enumerate(chunked_docs):
-                chunk_doc.metadata.update({
-                    "chunk_index": i,
-                    "chunk_id": str(uuid.uuid4()),
-                })
+            for page_num in range(len(pdf_document)):
+                page = pdf_document[page_num]
+                page_number = page_num + 1
+                
+                # Extract text and convert to markdown
+                try:
+                    # Get markdown from PyMuPDF
+                    markdown_text = page.get_textpage().extractTEXT()
+                    
+                    # Create structured markdown with required headers
+                    structured_markdown = self._create_structured_markdown(
+                        raw_text=markdown_text,
+                        display_title=display_title,
+                        page_number=page_number
+                    )
+                    
+                    # Create Document object
+                    doc = Document(
+                        page_content=structured_markdown,
+                        metadata={
+                            "source_title": file_stem,
+                            "source_file": file_name,
+                            "page_number": page_number,
+                            "document_type": document_type,
+                            "file_name": file_name,
+                            "file_extension": ".pdf",
+                            "source_path": str(file_path),
+                            "chunk_type": "page_based",
+                            "format": "markdown"
+                        }
+                    )
+                    
+                    documents.append(doc)
+                    logger.debug(f"   ✅ Page {page_number} processed")
+                    
+                except Exception as e:
+                    logger.error(f"   ❌ Error processing page {page_number}: {str(e)}")
+                    # Create a fallback document with error info
+                    fallback_doc = Document(
+                        page_content=f"# Title: {display_title}\n## Page No. {page_number}\n### Error Processing Page\nError: {str(e)}",
+                        metadata={
+                            "source_title": file_stem,
+                            "source_file": file_name,
+                            "page_number": page_number,
+                            "document_type": document_type,
+                            "file_name": file_name,
+                            "file_extension": ".pdf",
+                            "source_path": str(file_path),
+                            "chunk_type": "page_based",
+                            "format": "markdown",
+                            "processing_error": str(e)
+                        }
+                    )
+                    documents.append(fallback_doc)
+            
+            pdf_document.close()
+            logger.info(f"✅ PDF processing completed: {len(documents)} pages processed")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to open PDF {file_path}: {str(e)}")
+            raise
+        
+        return documents
+    
+    def _create_structured_markdown(self, raw_text: str, display_title: str, page_number: int) -> str:
+        """Create structured markdown with proper headers"""
+        
+        # Start with required header structure
+        markdown_content = f"# Title: {display_title}\n"
+        markdown_content += f"## Page No. {page_number}\n"
+        
+        if not raw_text.strip():
+            return markdown_content + "### No Content\n*This page appears to be empty or contains only images.*"
+        
+        # Process the raw text into structured content
+        lines = raw_text.strip().split('\n')
+        processed_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Convert content based on simple heuristics
+            if self._looks_like_major_heading(line):
+                processed_lines.append(f"### {line}")
+            elif self._looks_like_minor_heading(line):
+                processed_lines.append(f"#### {line}")
+            elif self._looks_like_list_item(line):
+                processed_lines.append(f"* {line}")
+            else:
+                processed_lines.append(line)
+        
+        # Add processed content
+        if processed_lines:
+            markdown_content += "\n".join(processed_lines)
+        else:
+            markdown_content += "### Content\n" + raw_text
+        
+        return markdown_content
+    
+    def _looks_like_major_heading(self, line: str) -> bool:
+        """Simple heuristic for major headings"""
+        return (len(line) < 80 and 
+                (line.isupper() or 
+                 any(keyword in line.upper() for keyword in ['WELCOME', 'BENEFITS', 'FEATURES', 'IMPORTANT', 'TABLE OF CONTENTS'])))
+    
+    def _looks_like_minor_heading(self, line: str) -> bool:
+        """Simple heuristic for minor headings"""
+        return (len(line) < 50 and ':' in line and not line.startswith('*') and not line.startswith('-'))
+    
+    def _looks_like_list_item(self, line: str) -> bool:
+        """Simple heuristic for list items"""
+        return (line.startswith('•') or line.startswith('-') or line.startswith('*') or 
+                (len(line) < 100 and '...' in line))
+    
+    def chunk_documents(self, documents: List[Document]) -> List[Document]:
+        """Process documents into chunks - for PDFs, each page is already a chunk"""
+        try:
+            chunked_docs = []
+            
+            for i, doc in enumerate(documents):
+                # Check if this is already a page-based chunk (PDF)
+                if doc.metadata.get("chunk_type") == "page_based":
+                    # PDF pages are already properly formatted, just add chunk metadata
+                    doc.metadata.update({
+                        "chunk_index": i,
+                        "chunk_id": str(uuid.uuid4()),
+                    })
+                    chunked_docs.append(doc)
+                else:
+                    # For non-PDF documents, use text splitting
+                    split_docs = self.text_splitter.split_documents([doc])
+                    
+                    for j, chunk_doc in enumerate(split_docs):
+                        # Get source information from metadata
+                        source_title = chunk_doc.metadata.get("source_title", "Unknown Source")
+                        page_number = chunk_doc.metadata.get("page_number", "Unknown Page")
+                        
+                        # Add source information at the top of the chunk content for non-PDF
+                        source_header = f"[Source: {source_title}, Page: {page_number}]\n\n"
+                        chunk_doc.page_content = source_header + chunk_doc.page_content
+                        
+                        # Add chunk-specific metadata
+                        chunk_doc.metadata.update({
+                            "chunk_index": len(chunked_docs),
+                            "chunk_id": str(uuid.uuid4()),
+                        })
+                        
+                        chunked_docs.append(chunk_doc)
             
             logger.info(f"Created {len(chunked_docs)} chunks from {len(documents)} documents")
             return chunked_docs
@@ -236,7 +402,7 @@ class DocumentIngestionService:
         directory_path: str, 
         document_type: str = "policy"
     ) -> List[Dict[str, Any]]:
-        """Ingest all documents from a directory"""
+        """Ingest all documents from a directory with enhanced metadata"""
         try:
             directory = Path(directory_path)
             if not directory.exists():
@@ -250,18 +416,23 @@ class DocumentIngestionService:
             for ext in supported_extensions:
                 files.extend(directory.glob(f"*{ext}"))
             
-            logger.info(f"Found {len(files)} documents to ingest from {directory_path}")
+            logger.info(f"🗂️ Found {len(files)} documents to ingest from {directory_path}")
             
             # Process each file
             for file_path in files:
+                logger.info(f"📄 Processing: {file_path.name}")
                 result = await self.ingest_document(str(file_path), document_type)
                 results.append(result)
             
             # Summary
             successful = len([r for r in results if r.get("status") == "success"])
             failed = len(results) - successful
+            total_chunks = sum(r.get("chunks_stored", 0) for r in results if r.get("status") == "success")
             
-            logger.info(f"Directory ingestion completed: {successful} successful, {failed} failed")
+            logger.info(f"📊 Directory ingestion completed:")
+            logger.info(f"   ✅ {successful} files successful")
+            logger.info(f"   ❌ {failed} files failed") 
+            logger.info(f"   📝 {total_chunks} total chunks created")
             
             return results
             
@@ -272,6 +443,103 @@ class DocumentIngestionService:
                 "status": "failed",
                 "error": str(e)
             }]
+    
+    async def ingest_pdfs_from_directory(
+        self, 
+        directory_path: str, 
+        document_type: str = "scotia_document"
+    ) -> Dict[str, Any]:
+        """Specialized method for ingesting multiple PDFs with detailed source tracking"""
+        try:
+            directory = Path(directory_path)
+            if not directory.exists():
+                raise FileNotFoundError(f"Directory not found: {directory_path}")
+            
+            # Find all PDF files
+            pdf_files = list(directory.glob("*.pdf"))
+            
+            if not pdf_files:
+                return {
+                    "status": "no_files",
+                    "message": f"No PDF files found in {directory_path}",
+                    "directory": str(directory)
+                }
+            
+            logger.info(f"📁 Processing {len(pdf_files)} PDF files from {directory}")
+            
+            all_results = []
+            total_chunks = 0
+            total_pages = 0
+            
+            for pdf_file in pdf_files:
+                logger.info(f"📄 Processing PDF: {pdf_file.name}")
+                
+                try:
+                    # Load the PDF with enhanced metadata
+                    documents = self.load_document(str(pdf_file), document_type)
+                    total_pages += len(documents)
+                    
+                    # Chunk the documents
+                    chunks = self.chunk_documents(documents)
+                    total_chunks += len(chunks)
+                    
+                    # Embed and store
+                    store_result = await self.embed_and_store(chunks)
+                    
+                    result = {
+                        "file_name": pdf_file.name,
+                        "status": "success",
+                        "pages": len(documents),
+                        "chunks": len(chunks),
+                        "document_type": document_type
+                    }
+                    
+                    logger.info(f"   ✅ {pdf_file.name}: {len(documents)} pages → {len(chunks)} chunks")
+                    
+                except Exception as e:
+                    result = {
+                        "file_name": pdf_file.name,
+                        "status": "failed",
+                        "error": str(e),
+                        "document_type": document_type
+                    }
+                    logger.error(f"   ❌ {pdf_file.name}: {str(e)}")
+                
+                all_results.append(result)
+            
+            # Summary statistics
+            successful_files = [r for r in all_results if r["status"] == "success"]
+            failed_files = [r for r in all_results if r["status"] == "failed"]
+            
+            summary = {
+                "status": "completed",
+                "directory": str(directory),
+                "total_files": len(pdf_files),
+                "successful_files": len(successful_files),
+                "failed_files": len(failed_files),
+                "total_pages": total_pages,
+                "total_chunks": total_chunks,
+                "document_type": document_type,
+                "results": all_results
+            }
+            
+            logger.info(f"🎉 PDF Directory Ingestion Summary:")
+            logger.info(f"   📁 Directory: {directory}")
+            logger.info(f"   📄 Files processed: {len(pdf_files)}")
+            logger.info(f"   ✅ Successful: {len(successful_files)}")
+            logger.info(f"   ❌ Failed: {len(failed_files)}")
+            logger.info(f"   📄 Total pages: {total_pages}")
+            logger.info(f"   📝 Total chunks: {total_chunks}")
+            
+            return summary
+            
+        except Exception as e:
+            logger.error(f"PDF directory ingestion failed: {str(e)}")
+            return {
+                "status": "failed",
+                "error": str(e),
+                "directory": str(directory_path)
+            }
     
     def list_documents(self) -> Dict[str, Any]:
         """List all documents in the collection"""
