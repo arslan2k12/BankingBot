@@ -20,6 +20,93 @@ from src.app.utils.logger_utils import get_logger, setup_logging
 setup_logging(settings.log_level, settings.log_file)
 logger = get_logger(__name__)
 
+def display_chromadb_documents():
+    """Display information about documents available in ChromaDB"""
+    try:
+        import chromadb
+        from pathlib import Path
+        
+        # Connect to ChromaDB
+        chromadb_path = Path(PROJECT_ROOT) / "data" / "chromadb"
+        client = chromadb.PersistentClient(path=str(chromadb_path))
+        
+        logger.info("=" * 80)
+        logger.info("📚 CHROMADB DOCUMENT INVENTORY")
+        logger.info("=" * 80)
+        
+        try:
+            # Get the collection
+            collection = client.get_collection(name=settings.chromadb_collection_name)
+            total_chunks = collection.count()
+            
+            if total_chunks == 0:
+                logger.info("📭 No documents found in ChromaDB collection")
+                logger.info("   Use the ingestion API to add documents: http://localhost:8000/docs")
+                logger.info("=" * 80)
+                return
+            
+            # Get all documents with metadata
+            results = collection.get(include=["metadatas"])
+            
+            # Group by unique document titles
+            documents = {}
+            for metadata in results["metadatas"]:
+                source_title = metadata.get("source_title", metadata.get("file_name", "Unknown"))
+                doc_type = metadata.get("document_type", "unknown")
+                file_ext = metadata.get("file_extension", "unknown")
+                
+                if source_title not in documents:
+                    documents[source_title] = {
+                        "title": source_title,
+                        "type": doc_type,
+                        "extension": file_ext,
+                        "chunk_count": 0,
+                        "pages": set()
+                    }
+                
+                documents[source_title]["chunk_count"] += 1
+                
+                # Collect page numbers if available
+                page_num = metadata.get("page_number")
+                if page_num and page_num != "unknown":
+                    documents[source_title]["pages"].add(page_num)
+            
+            # Display summary
+            logger.info(f"📊 Total Chunks: {total_chunks}")
+            logger.info(f"📄 Unique Documents: {len(documents)}")
+            logger.info(f"🗂️ Collection: '{settings.chromadb_collection_name}'")
+            logger.info("-" * 80)
+            
+            # Display each document
+            for i, (title, info) in enumerate(documents.items(), 1):
+                pages_info = ""
+                if info["pages"]:
+                    sorted_pages = sorted(list(info["pages"]))
+                    if len(sorted_pages) > 5:
+                        pages_info = f" (Pages: {sorted_pages[0]}-{sorted_pages[-1]})"
+                    else:
+                        pages_info = f" (Pages: {', '.join(map(str, sorted_pages))})"
+                
+                # Truncate long titles for better display
+                display_title = title if len(title) <= 60 else title[:57] + "..."
+                
+                logger.info(f"📖 {i:2d}. {display_title}")
+                logger.info(f"      Type: {info['type']} | Format: {info['extension']} | Chunks: {info['chunk_count']}{pages_info}")
+            
+            logger.info("=" * 80)
+            logger.info(f"✅ Banking Bot can answer questions about these {len(documents)} documents")
+            logger.info("=" * 80)
+            
+        except Exception as e:
+            logger.error(f"❌ Collection '{settings.chromadb_collection_name}' not found: {str(e)}")
+            logger.info("   Use the ingestion API to create and populate the collection")
+            logger.info("   Ingestion API: http://localhost:8000/docs")
+            logger.info("=" * 80)
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to connect to ChromaDB: {str(e)}")
+        logger.info("=" * 80)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
@@ -33,6 +120,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to create database tables: {str(e)}")
         raise
+    
+    # Display ChromaDB document inventory
+    display_chromadb_documents()
     
     # Initialize agents and services (agents are now created per-user)
     try:
